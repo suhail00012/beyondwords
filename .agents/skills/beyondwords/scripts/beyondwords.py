@@ -15,7 +15,7 @@ from publishing_result import ToolResult, Cost
 from beyondwords_book import BookStore, VERSION
 
 MUTATIONS = {'enable', 'plan', 'chapter', 'source', 'claim', 'review', 'asset', 'edition', 'launch', 'report-import', 'prepare', 'outcome'}
-OPERATIONS = MUTATIONS | {'init', 'doctor', 'status', 'finance', 'goals', 'export', 'cover-directions', 'guide', 'market-screen', 'research-desk', 'writing-context', 'ads-analyze', 'cover-compose', 'connect', 'research', 'lifecycle', 'visual-book', 'cover-wrap', 'host-route', 'manuscript-import', 'story-memory', 'coloring-book', 'editorial', 'publishing-check'}
+OPERATIONS = MUTATIONS | {'init', 'doctor', 'status', 'finance', 'goals', 'export', 'cover-directions', 'guide', 'market-screen', 'research-desk', 'writing-context', 'ads-analyze', 'cover-compose', 'connect', 'research', 'lifecycle', 'visual-book', 'cover-wrap', 'host-route', 'manuscript-import', 'story-memory', 'coloring-book', 'editorial', 'publishing-check', 'video-meta'}
 
 
 def execute(operation, *, workspace=None, project_id=None, expected_revision=None, payload=None, destination=None):
@@ -35,6 +35,9 @@ def execute(operation, *, workspace=None, project_id=None, expected_revision=Non
         elif operation == 'coloring-book':
             from beyondwords_coloring import execute as coloring_execute
             data=coloring_execute(payload,destination)
+        elif operation == 'video-meta':
+            from beyondwords_video import execute as video_execute
+            data=video_execute(payload,destination)
         elif operation in {'manuscript-import','story-memory'}:
             if not workspace or not project_id:raise ValueError('Select the author book workspace and project ID')
             from beyondwords_authoring import manuscript_import, story_memory
@@ -85,10 +88,11 @@ def execute(operation, *, workspace=None, project_id=None, expected_revision=Non
             data['local_operations']=sorted(OPERATIONS)
             data['account_acceptance_verified']=False
             data['integrations'].update(mcp_server='optional_official_sdk_stdio',publisher_upload='attended_browser_adapter_requires_account_acceptance',
-                                        ad_execution='official_api_adapter_requires_account_acceptance')
+                                        ad_execution='official_api_adapter_requires_account_acceptance',
+                                        video_metadata_edit='ffmpeg_required')
             data['beyondwords'] = {'version': VERSION, 'local_book_workflow': 'implemented',
                                   'guided_intake_and_memory': 'implemented',
-                                  'specialist_desks': ['research-desk','market-screen','writing-context','manuscript-import','story-memory','editorial','cover-compose','ads-analyze','lifecycle','visual-book','coloring-book','cover-wrap','host-route','publishing-check'],
+                                  'specialist_desks': ['research-desk','market-screen','writing-context','manuscript-import','story-memory','editorial','cover-compose','ads-analyze','lifecycle','visual-book','coloring-book','cover-wrap','host-route','publishing-check','video-meta'],
                                   'host_inference': 'provided by the current host, not bundled',
                                   'publication_and_ad_mutations': 'connector implemented; account authentication and attended authorization required',
                                   'monitoring': 'local worker implemented; not automatically scheduled', 'local_inference': 'UNTESTED'}
