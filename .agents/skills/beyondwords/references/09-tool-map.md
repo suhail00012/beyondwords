@@ -14,6 +14,7 @@ Use `scripts/beyondwords.py` for the current toolkit. Resolve the actual install
 | prepare / outcome | Exact-file owner package and recorded outcomes |
 | report-import / finance / goals / ads-analyze | Authorized reports and transparent economics |
 | video-meta | Strip and replace video metadata (copyright, author, encoder) for clean publishing |
+| copyright-free | Process video to avoid copyright matching: pitch shift, mirror, color tweak, speed change, metadata strip |
 | connect / host-route / lifecycle | Available account tools, durable operations and contextual decisions |
 
 Read references 12 and 18–29 for actual input contracts. Prepare inputs for the author, rather than asking them to write JSON. No generated tool names or unimplemented dotted API is implied.
