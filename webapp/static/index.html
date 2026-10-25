@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beyondwords — Publishing Workflow</title>
+<style>
+:root {
+  --bg:#0f1117; --surface:#1a1d28; --surface2:#222636; --ink:#e4e6eb; --dim:#8b90a0;
+  --accent:#7c9eff; --accent2:#a78bfa; --green:#4ecca3; --amber:#e8c547;
+  --red:#ef5a5a; --blue:#5b9eff; --border:#2a2e3a; --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+
+/* Layout */
+.app{max-width:1100px;margin:0 auto;padding:1rem}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 0 1.25rem}
+.brand{display:flex;align-items:center;gap:.5rem;font-size:1.2rem;font-weight:700}
+.brand span{color:var(--accent)}
+.nav{display:flex;gap:.4rem;flex-wrap:wrap}
+.nav button{background:none;border:none;color:var(--dim);font-size:.85rem;padding:.45rem .8rem;border-radius:8px;cursor:pointer;transition:.15s}
+.nav button:hover{color:var(--ink);background:var(--surface)}
+.nav button.active{color:var(--ink);background:var(--surface);font-weight:600}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem}
+.card+.card{margin-top:.75rem}
+
+/* Stats grid */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;text-align:center}
+.stat .num{font-size:1.6rem;font-weight:700}
+.stat .lbl{font-size:.75rem;color:var(--dim);margin-top:.2rem;text-transform:uppercase;letter-spacing:.5px}
+
+/* Section headers */
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.sec-h h2{font-size:1rem;font-weight:600}
+.sec-h .actions{display:flex;gap:.4rem}
+
+/* Buttons */
+.btn{background:var(--accent);color:#111;border:none;padding:.5rem .9rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:.15s}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--border)}
+.btn.sm{padding:.3rem .6rem;font-size:.76rem}
+.btn.danger{background:var(--red);color:#fff}
+
+/* Project grid */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.75rem}
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:.15s}
+.proj-card:hover{border-color:var(--accent)}
+.proj-card .ptitle{font-size:.95rem;font-weight:600;margin-bottom:.2rem}
+.proj-card .pmeta{font-size:.78rem;color:var(--dim);margin-bottom:.7rem}
+.progress-wrap{margin:.5rem 0}
+.progress-bar{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;transition:width .4s}
+.progress-label{display:flex;justify-content:space-between;font-size:.72rem;color:var(--dim);margin-top:.3rem}
+.stage-dots{display:flex;gap:3px;margin-top:.6rem}
+.stage-dot{flex:1;height:4px;border-radius:99px;background:var(--surface2)}
+
+/* Status badges */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .55rem;border-radius:99px;font-size:.72rem;font-weight:600}
+.badge::before{content:'';width:7px;height:7px;border-radius:50%}
+.badge.not_started{background:rgba(139,144,160,.15);color:var(--dim)}.badge.not_started::before{background:var(--dim)}
+.badge.in_progress{background:rgba(91,158,255,.15);color:var(--blue)}.badge.in_progress::before{background:var(--blue)}
+.badge.review{background:rgba(232,197,71,.15);color:var(--amber)}.badge.review::before{background:var(--amber)}
+.badge.completed{background:rgba(78,204,163,.15);color:var(--green)}.badge.completed::before{background:var(--green)}
+.badge.blocked{background:rgba(239,90,90,.15);color:var(--red)}.badge.blocked::before{background:var(--red)}
+.badge.todo{background:rgba(139,144,160,.15);color:var(--dim)}.badge.todo::before{background:var(--dim)}
+.badge.done{background:rgba(78,204,163,.15);color:var(--green)}.badge.done::before{background:var(--green)}
+.badge.active{background:rgba(91,158,255,.15);color:var(--blue)}.badge.active::before{background:var(--blue)}
+.badge.high{background:rgba(239,90,90,.12);color:var(--red)}
+.badge.urgent{background:rgba(239,90,90,.2);color:var(--red)}
+.badge.medium{background:rgba(232,197,71,.12);color:var(--amber)}
+.badge.low{background:rgba(139,144,160,.12);color:var(--dim)}
+
+/* Stage list */
+.stages{display:flex;flex-direction:column;gap:.5rem}
+.stage-row{display:flex;align-items:center;gap:.7rem;padding:.7rem .9rem;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.stage-row .sname{flex:1;font-size:.88rem}
+.stage-row .sdeadline{font-size:.75rem;color:var(--dim)}
+.stage-row select{background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:.25rem .4rem;font-size:.76rem}
+.stage-row input[type=date]{background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:.25rem .4rem;font-size:.76rem}
+
+/* Task list */
+.tasks{display:flex;flex-direction:column;gap:.4rem}
+.task-row{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.task-row .ttitle{flex:1;font-size:.85rem}
+.task-row .tdue{font-size:.72rem;color:var(--dim)}
+.task-row select{background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:6px;padding:.2rem .3rem;font-size:.74rem}
+.task-row .del{background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:0 .3rem}
+.task-row .del:hover{color:var(--red)}
+
+/* Detail view */
+.detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.detail-head h2{font-size:1.15rem}
+.detail-head p{font-size:.82rem;color:var(--dim)}
+.back-link{color:var(--accent);font-size:.82rem;cursor:pointer;margin-bottom:.75rem;display:inline-block}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;padding:1rem}
+.overlay.hidden{display:none}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;max-width:420px;width:100%}
+.modal h3{font-size:1rem;margin-bottom:1rem}
+.modal .field{margin-bottom:.8rem}
+.modal label{display:block;font-size:.78rem;color:var(--dim);margin-bottom:.25rem}
+.modal input,.modal select,.modal textarea{width:100%;background:var(--surface2);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:.5rem .65rem;font-size:.85rem}
+.modal textarea{resize:vertical;min-height:60px}
+.modal .btn-row{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+
+/* Calendar */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.cal-header h2{font-size:1rem}
+.cal-nav{display:flex;gap:.4rem;align-items:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:.72rem;color:var(--dim);padding:.3rem 0;text-transform:uppercase}
+.cal-day{min-height:70px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.3rem;font-size:.72rem;position:relative}
+.cal-day.empty{background:none;border:none}
+.cal-day.today{border-color:var(--accent)}
+.cal-day .dnum{font-weight:600;color:var(--dim);margin-bottom:.2rem}
+.cal-day.today .dnum{color:var(--accent)}
+.cal-event{font-size:.66rem;padding:.15rem .3rem;border-radius:4px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.cal-event.project_deadline{background:rgba(239,90,90,.2);color:var(--red)}
+.cal-event.stage_deadline{background:rgba(91,158,255,.15);color:var(--blue)}
+.cal-event.task{background:rgba(167,139,250,.15);color:var(--accent2)}
+
+/* Tabs in detail */
+.tabs{display:flex;gap:.3rem;margin-bottom:.75rem}
+.tabs button{background:none;border:none;color:var(--dim);padding:.4rem .7rem;border-radius:8px;font-size:.82rem;cursor:pointer}
+.tabs button.active{background:var(--surface);color:var(--ink);font-weight:600}
+
+.hidden{display:none}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:var(--dim)}
+.empty-state .icon{font-size:2rem;margin-bottom:.5rem}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand">📚 Beyond<span>words</span></div>
+    <div class="nav">
+      <button id="nav-dashboard" class="active" onclick="show('dashboard')">Dashboard</button>
+      <button id="nav-projects" onclick="show('projects')">Projects</button>
+      <button id="nav-calendar" onclick="show('calendar')">Calendar</button>
+    </div>
+  </div>
+  <div id="view-dashboard"></div>
+  <div id="view-projects" class="hidden"></div>
+  <div id="view-calendar" class="hidden"></div>
+  <div id="view-detail" class="hidden"></div>
+</div>
+
+<div class="overlay hidden" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+const API = '/api';
+let currentView = 'dashboard';
+let calMonth = new Date();
+let currentProjectId = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.status === 204 ? null : r.json();
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+function progressColor(pct) {
+  if (pct >= 100) return 'var(--green)';
+  if (pct >= 50) return 'var(--blue)';
+  if (pct > 0) return 'var(--amber)';
+  return 'var(--surface2)';
+}
+
+function stageDotColor(status) {
+  return {not_started:'var(--surface2)', in_progress:'var(--blue)', review:'var(--amber)', completed:'var(--green)', blocked:'var(--red)'}[status] || 'var(--surface2)';
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function daysUntil(d) {
+  if (!d) return null;
+  const diff = new Date(d + 'T00:00:00') - new Date(new Date().toDateString());
+  return Math.ceil(diff / 86400000);
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function show(view) {
+  currentView = view;
+  ['dashboard','projects','calendar','detail'].forEach(v => {
+    document.getElementById('view-'+v).classList.add('hidden');
+  });
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  if (view === 'dashboard') { document.getElementById('view-dashboard').classList.remove('hidden'); document.getElementById('nav-dashboard').classList.add('active'); loadDashboard(); }
+  else if (view === 'projects') { document.getElementById('view-projects').classList.remove('hidden'); document.getElementById('nav-projects').classList.add('active'); loadProjects(); }
+  else if (view === 'calendar') { document.getElementById('view-calendar').classList.remove('hidden'); document.getElementById('nav-calendar').classList.add('active'); loadCalendar(); }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const [dash, projects] = await Promise.all([api('GET','/dashboard'), api('GET','/projects')]);
+  const el = document.getElementById('view-dashboard');
+  let html = `
+    <div class="stats">
+      <div class="stat"><div class="num">${dash.total_projects}</div><div class="lbl">Projects</div></div>
+      <div class="stat"><div class="num" style="color:var(--blue)">${dash.active_projects}</div><div class="lbl">Active</div></div>
+      <div class="stat"><div class="num" style="color:var(--green)">${dash.completed_projects}</div><div class="lbl">Completed</div></div>
+      <div class="stat"><div class="num" style="color:var(--accent)">${dash.avg_progress}%</div><div class="lbl">Avg Progress</div></div>
+      <div class="stat"><div class="num" style="color:var(--amber)">${dash.in_progress_stages}</div><div class="lbl">In Progress</div></div>
+      <div class="stat"><div class="num" style="color:var(--red)">${dash.blocked_stages}</div><div class="lbl">Blocked</div></div>
+    </div>
+    <div class="sec-h"><h2>Project Progress</h2><button class="btn sm" onclick="newProjectModal()">+ New Project</button></div>
+  `;
+  if (projects.length === 0) {
+    html += `<div class="empty-state"><div class="icon">📚</div><p>No projects yet. Create one to start tracking your publishing workflow.</p><br><button class="btn" onclick="newProjectModal()">Create Your First Project</button></div>`;
+  } else {
+    html += '<div class="proj-grid">';
+    for (const p of projects) {
+      const dots = p.stages.map(s => `<div class="stage-dot" style="background:${stageDotColor(s.status)}"></div>`).join('');
+      html += `
+        <div class="proj-card" onclick="showDetail('${p.id}')">
+          <div class="ptitle">${esc(p.title)}</div>
+          <div class="pmeta">${esc(p.author)} · ${esc(p.route)} ${p.deadline ? '· Due ' + formatDate(p.deadline) : ''}</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%;background:${progressColor(p.progress)}"></div></div>
+            <div class="progress-label"><span>${p.progress}% complete</span><span>${p.stages.filter(s=>s.status==='completed').length}/${p.stages.length} stages</span></div>
+          </div>
+          <div class="stage-dots">${dots}</div>
+          <div style="margin-top:.5rem">${p.task_count} tasks</div>
+        </div>
+      `;
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ── Projects list ────────────────────────────────────────────────────────
+async function loadProjects() {
+  const projects = await api('GET', '/projects');
+  const el = document.getElementById('view-projects');
+  let html = `<div class="sec-h"><h2>All Projects</h2><button class="btn sm" onclick="newProjectModal()">+ New Project</button></div>`;
+  if (projects.length === 0) {
+    html += `<div class="empty-state"><div class="icon">📚</div><p>No projects yet.</p></div>`;
+  } else {
+    html += '<div class="proj-grid">';
+    for (const p of projects) {
+      const statusBadge = `<span class="badge ${p.status}">${p.status}</span>`;
+      const dots = p.stages.map(s => `<div class="stage-dot" style="background:${stageDotColor(s.status)}"></div>`).join('');
+      html += `
+        <div class="proj-card" onclick="showDetail('${p.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div class="ptitle">${esc(p.title)}</div>
+            ${statusBadge}
+          </div>
+          <div class="pmeta">${esc(p.author)} · ${esc(p.genre || p.route)}</div>
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" style="width:${p.progress}%;background:${progressColor(p.progress)}"></div></div>
+            <div class="progress-label"><span>${p.progress}%</span><span>${p.stages.filter(s=>s.status==='completed').length}/${p.stages.length} stages · ${p.task_count} tasks</span></div>
+          </div>
+          <div class="stage-dots">${dots}</div>
+        </div>
+      `;
+    }
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+// ── Project detail ────────────────────────────────────────────────────────
+let detailTab = 'stages';
+async function showDetail(pid) {
+  currentProjectId = pid;
+  ['dashboard','projects','calendar'].forEach(v => document.getElementById('view-'+v).classList.add('hidden'));
+  document.getElementById('view-detail').classList.remove('hidden');
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  await renderDetail();
+}
+
+async function renderDetail() {
+  const p = await api('GET', '/projects/' + currentProjectId);
+  if (!p || p.error) { show('projects'); return; }
+  const el = document.getElementById('view-detail');
+  const deadlineInfo = p.deadline ? (() => { const d = daysUntil(p.deadline); return d !== null ? (d < 0 ? `<span style="color:var(--red)">${-d} days overdue</span>` : d === 0 ? '<span style="color:var(--amber)">Due today</span>' : `<span style="color:var(--dim)">${d} days left</span>`) : ''; })() : '';
+
+  let html = `<span class="back-link" onclick="show('projects')">← Back to projects</span>
+    <div class="detail-head">
+      <div>
+        <h2>${esc(p.title)}</h2>
+        <p>by ${esc(p.author)} · ${esc(p.genre || p.route)} · ${esc(p.language)} · <span class="badge ${p.status}">${p.status}</span></p>
+        ${p.description ? `<p style="margin-top:.4rem">${esc(p.description)}</p>` : ''}
+        ${deadlineInfo ? `<p style="margin-top:.3rem">${deadlineInfo} · Due ${formatDate(p.deadline)}</p>` : ''}
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="btn ghost sm" onclick="editProjectModal()">Edit</button>
+        <button class="btn ghost sm" onclick="newTaskModal()">+ Task</button>
+        <button class="btn danger sm" onclick="deleteProject()">Delete</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="progress-wrap" style="margin:0">
+        <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${p.progress}%;background:${progressColor(p.progress)}"></div></div>
+        <div class="progress-label"><span style="font-size:.85rem;font-weight:600">${p.progress}% Complete</span><span>${p.stages.filter(s=>s.status==='completed').length} of ${p.stages.length} stages done</span></div>
+      </div>
+    </div>
+    <div class="tabs" style="margin-top:1rem">
+      <button class="${detailTab==='stages'?'active':''}" onclick="detailTab='stages';renderDetail()">Stages</button>
+      <button class="${detailTab==='tasks'?'active':''}" onclick="detailTab='tasks';renderDetail()">Tasks (${p.tasks.length})</button>
+    </div>
+  `;
+
+  if (detailTab === 'stages') {
+    html += '<div class="stages">';
+    for (const s of p.stages) {
+      const dlInfo = s.deadline ? (() => { const d = daysUntil(s.deadline); return d !== null && d < 0 ? ` <span style="color:var(--red)">${-d}d overdue</span>` : d !== null && d <= 7 ? ` <span style="color:var(--amber)">${d}d left</span>` : s.deadline ? ` <span style="color:var(--dim)">${formatDate(s.deadline)}</span>` : ''; })() : '';
+      html += `
+        <div class="stage-row">
+          <span class="badge ${s.status}">${s.status.replace('_',' ')}</span>
+          <div class="sname">
+            <div>${esc(s.name)}</div>
+            ${s.notes ? `<div style="font-size:.74rem;color:var(--dim);margin-top:.2rem">${esc(s.notes)}</div>` : ''}
+            <div style="font-size:.72rem;color:var(--dim);margin-top:.2rem">Deadline: ${dlInfo || 'not set'}</div>
+          </div>
+          <input type="date" value="${s.deadline || ''}" onchange="updateStage('${s.id}','deadline',this.value)">
+          <select onchange="updateStage('${s.id}','status',this.value)">
+            ${['not_started','in_progress','review','completed','blocked'].map(st => `<option value="${st}" ${s.status===st?'selected':''}>${st.replace('_',' ')}</option>`).join('')}
+          </select>
+        </div>
+      `;
+    }
+    html += '</div>';
+  } else {
+    if (p.tasks.length === 0) {
+      html += '<div class="empty-state"><div class="icon">✓</div><p>No tasks yet. Add one to track your to-dos.</p></div>';
+    } else {
+      html += '<div class="tasks">';
+      for (const t of p.tasks) {
+        const dl = t.due_date ? formatDate(t.due_date) : '';
+        const stageName = p.stages.find(s => s.id === t.stage_id)?.name || '';
+        html += `
+          <div class="task-row">
+            <span class="badge ${t.status}">${t.status.replace('_',' ')}</span>
+            <span class="badge ${t.priority}">${t.priority}</span>
+            <div class="ttitle">
+              ${esc(t.title)}
+              ${stageName ? `<span style="font-size:.72rem;color:var(--dim)"> · ${esc(stageName)}</span>` : ''}
+              ${dl ? `<span class="tdue"> · ${dl}</span>` : ''}
+            </div>
+            <select onchange="updateTask('${t.id}','status',this.value)">
+              ${['todo','in_progress','done'].map(st => `<option value="${st}" ${t.status===st?'selected':''}>${st.replace('_',' ')}</option>`).join('')}
+            </select>
+            <button class="del" onclick="deleteTask('${t.id}')">×</button>
+          </div>
+        `;
+      }
+      html += '</div>';
+    }
+  }
+  el.innerHTML = html;
+}
+
+async function updateStage(sid, field, value) {
+  await api('PUT', '/stages/' + sid, {[field]: value});
+  renderDetail();
+}
+async function updateTask(tid, field, value) {
+  await api('PUT', '/tasks/' + tid, {[field]: value});
+  renderDetail();
+}
+async function deleteTask(tid) {
+  await api('DELETE', '/tasks/' + tid);
+  renderDetail();
+}
+async function deleteProject() {
+  if (!confirm('Delete this project and all its stages and tasks?')) return;
+  await api('DELETE', '/projects/' + currentProjectId);
+  show('projects');
+}
+
+// ── Calendar ─────────────────────────────────────────────────────────────
+async function loadCalendar() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const monthStr = `${y}-${String(m+1).padStart(2,'0')}`;
+  const events = await api('GET', '/calendar?month=' + monthStr);
+  const el = document.getElementById('view-calendar');
+
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date().toDateString();
+  const monthName = calMonth.toLocaleString('en-US', {month:'long', year:'numeric'});
+
+  let html = `
+    <div class="cal-header">
+      <h2>${monthName}</h2>
+      <div class="cal-nav">
+        <button class="btn ghost sm" onclick="calMonth=new Date(${y},${m-1},1);loadCalendar()">←</button>
+        <button class="btn ghost sm" onclick="calMonth=new Date();loadCalendar()">Today</button>
+        <button class="btn ghost sm" onclick="calMonth=new Date(${y},${m+1},1);loadCalendar()">→</button>
+      </div>
+    </div>
+    <div class="cal-grid">
+      ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-dow">${d}</div>`).join('')}
+  `;
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = new Date(y, m, d).toDateString() === today;
+    const dayEvents = events.filter(e => e.date === dateStr);
+    let evHtml = '';
+    for (const e of dayEvents.slice(0, 3)) {
+      const label = e.type === 'project_deadline' ? '📖 ' + esc(e.title) : e.type === 'stage_deadline' ? '⚙ ' + esc(e.title.split(' — ')[1] || e.title) : '✓ ' + esc(e.title);
+      evHtml += `<div class="cal-event ${e.type}" onclick="calendarClick('${e.type}','${e.id}')">${label}</div>`;
+    }
+    if (dayEvents.length > 3) evHtml += `<div style="font-size:.66rem;color:var(--dim);padding:.1rem .3rem">+${dayEvents.length-3} more</div>`;
+    html += `<div class="cal-day ${isToday?'today':''}"><div class="dnum">${d}</div>${evHtml}</div>`;
+  }
+  html += '</div>';
+
+  // Legend + upcoming
+  const upcoming = events.filter(e => e.date >= monthStr + '-01').sort((a,b) => a.date.localeCompare(b.date)).slice(0, 8);
+  html += `
+    <div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap;font-size:.75rem;color:var(--dim)">
+      <span><span class="cal-event project_deadline" style="display:inline-block;width:12px;height:12px;border-radius:3px"></span> Project deadline</span>
+      <span><span class="cal-event stage_deadline" style="display:inline-block;width:12px;height:12px;border-radius:3px"></span> Stage deadline</span>
+      <span><span class="cal-event task" style="display:inline-block;width:12px;height:12px;border-radius:3px"></span> Task due</span>
+    </div>
+  `;
+  if (upcoming.length) {
+    html += '<div class="sec-h" style="margin-top:1.25rem"><h2>Upcoming Deadlines</h2></div><div class="card"><div class="tasks">';
+    for (const e of upcoming) {
+      const days = daysUntil(e.date);
+      const urgency = days < 0 ? 'var(--red)' : days <= 3 ? 'var(--amber)' : 'var(--dim)';
+      html += `<div class="task-row"><span class="badge ${e.status || 'not_started'}">${(e.status||'not_started').replace('_',' ')}</span><div class="ttitle">${esc(e.title)}</div><span class="tdue" style="color:${urgency}">${formatDate(e.date)} ${days !== null ? '(' + (days < 0 ? -days + 'd overdue' : days + 'd left') + ')' : ''}</span></div>`;
+    }
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function calendarClick(type, id) {
+  if (type === 'project_deadline') showDetail(id);
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function newProjectModal() {
+  openModal(`
+    <h3>New Book Project</h3>
+    <div class="field"><label>Title</label><input id="f-title" placeholder="My Next Book"></div>
+    <div class="field"><label>Author</label><input id="f-author" placeholder="Author Name"></div>
+    <div class="field"><label>Genre</label><input id="f-genre" placeholder="Self-help, Fantasy…"></div>
+    <div class="field"><label>Route</label><select id="f-route">${['nonfiction','fiction','children','comics','workbook','coloring','puzzles','art','activity'].map(r=>`<option value="${r}">${r}</option>`).join('')}</select></div>
+    <div class="field"><label>Deadline</label><input type="date" id="f-deadline"></div>
+    <div class="field"><label>Description</label><textarea id="f-desc" placeholder="Brief description…"></textarea></div>
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn" onclick="createProject()">Create</button></div>
+  `);
+}
+
+async function createProject() {
+  await api('POST', '/projects', {
+    title: document.getElementById('f-title').value,
+    author: document.getElementById('f-author').value,
+    genre: document.getElementById('f-genre').value,
+    route: document.getElementById('f-route').value,
+    deadline: document.getElementById('f-deadline').value || null,
+    description: document.getElementById('f-desc').value,
+  });
+  closeModal();
+  show(currentView);
+}
+
+function editProjectModal() {
+  api('GET', '/projects/' + currentProjectId).then(p => {
+    openModal(`
+      <h3>Edit Project</h3>
+      <div class="field"><label>Title</label><input id="f-title" value="${esc(p.title)}"></div>
+      <div class="field"><label>Author</label><input id="f-author" value="${esc(p.author)}"></div>
+      <div class="field"><label>Genre</label><input id="f-genre" value="${esc(p.genre)}"></div>
+      <div class="field"><label>Route</label><select id="f-route">${['nonfiction','fiction','children','comics','workbook','coloring','puzzles','art','activity'].map(r=>`<option value="${r}" ${p.route===r?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="field"><label>Status</label><select id="f-status">${['active','on_hold','completed','archived'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+      <div class="field"><label>Deadline</label><input type="date" id="f-deadline" value="${p.deadline || ''}"></div>
+      <div class="field"><label>Description</label><textarea id="f-desc">${esc(p.description)}</textarea></div>
+      <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn" onclick="saveProject()">Save</button></div>
+    `);
+  });
+}
+
+async function saveProject() {
+  await api('PUT', '/projects/' + currentProjectId, {
+    title: document.getElementById('f-title').value,
+    author: document.getElementById('f-author').value,
+    genre: document.getElementById('f-genre').value,
+    route: document.getElementById('f-route').value,
+    status: document.getElementById('f-status').value,
+    deadline: document.getElementById('f-deadline').value || null,
+    description: document.getElementById('f-desc').value,
+  });
+  closeModal();
+  renderDetail();
+}
+
+function newTaskModal() {
+  api('GET', '/projects/' + currentProjectId).then(p => {
+    openModal(`
+      <h3>New Task</h3>
+      <div class="field"><label>Title</label><input id="t-title" placeholder="Task name"></div>
+      <div class="field"><label>Stage</label><select id="t-stage"><option value="">— None —</option>${p.stages.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Priority</label><select id="t-priority">${['low','medium','high','urgent'].map(pr=>`<option value="${pr}" ${pr==='medium'?'selected':''}>${pr}</option>`).join('')}</select></div>
+      <div class="field"><label>Due Date</label><input type="date" id="t-due"></div>
+      <div class="field"><label>Description</label><textarea id="t-desc" placeholder="Optional notes…"></textarea></div>
+      <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn" onclick="createTask()">Add Task</button></div>
+    `);
+  });
+}
+
+async function createTask() {
+  await api('POST', '/tasks', {
+    project_id: currentProjectId,
+    stage_id: document.getElementById('t-stage').value || null,
+    title: document.getElementById('t-title').value,
+    description: document.getElementById('t-desc').value,
+    priority: document.getElementById('t-priority').value,
+    due_date: document.getElementById('t-due').value || null,
+  });
+  closeModal();
+  detailTab = 'tasks';
+  renderDetail();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+show('dashboard');
+</script>
+</body>
+</html>

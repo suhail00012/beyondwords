@@ -1,9 +1,8 @@
 #!/bin/sh
-# Install the reviewed Beyondwords runtime once, then serve the read-only preview.
+# Install the reviewed Beyondwords runtime once, then serve the web app.
 set -eu
 
 RUNTIME="${BEYONDWORDS_RUNTIME:-/runtime/venv}"
-CLI="${BEYONDWORDS_CLI:-/workspace/.agents/skills/beyondwords/scripts/beyondwords.py}"
 
 if [ ! -x "$RUNTIME/bin/python" ]; then
     echo "beyondwords: installing reviewed runtime into $RUNTIME"
@@ -17,5 +16,5 @@ fi
 
 mkdir -p "${BEYONDWORDS_WORKSPACE:-/data/workspace}"
 
-echo "beyondwords: starting read-only preview on port ${PORT:-3000}"
-exec python3 /config/preview/server.py
+echo "beyondwords: starting publishing workflow app on port ${PORT:-3000}"
+exec python3 /workspace/webapp/server.py

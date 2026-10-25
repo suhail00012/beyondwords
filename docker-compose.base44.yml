@@ -1,9 +1,9 @@
 # Base44 sandbox environment for the Beyondwords repository.
 #
-# Beyondwords is a Python 3.11+ local toolkit plus an assistant skill: no
-# hosted backend, no web UI, no bundled model. This environment runs the
-# project's own CLI from the bind-mounted source and serves a read-only
-# preview of its real output on host port 3000 (preview/server.py).
+# Beyondwords is a Python 3.11+ local toolkit plus an assistant skill.
+# This environment runs the publishing workflow web app (webapp/server.py)
+# from the bind-mounted source on host port 3000, backed by a local SQLite
+# database in a named volume.
 name: app
 
 services:
@@ -24,6 +24,7 @@ services:
       - BEYONDWORDS_CLI=/workspace/.agents/skills/beyondwords/scripts/beyondwords.py
       - BEYONDWORDS_SCRIPTS=/workspace/.agents/skills/beyondwords/scripts
       - BEYONDWORDS_WORKSPACE=/data/workspace
+      - BEYONDWORDS_DB=/data/workflow.db
       - PORT=3000
     ports:
       - "3000:3000"
