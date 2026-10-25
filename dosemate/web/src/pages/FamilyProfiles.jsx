@@ -10,8 +10,11 @@ export default function FamilyProfiles() {
   const [draft, setDraft] = useState({ name: "", age: "", weight: "" });
   const [editingId, setEditingId] = useState(null);
 
-  const load = () => apiMembers.list().then(setMembers).catch(console.error);
-  useEffect(() => load(), []);
+  const load = () =>
+    apiMembers.list().then(setMembers).catch((e) => console.error("members load", e));
+  useEffect(() => {
+    load();
+  }, []);
 
   const reset = () => {
     setDraft({ name: "", age: "", weight: "" });
